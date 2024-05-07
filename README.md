@@ -1,4 +1,4 @@
-# flutter_Bluetooth_application_from Rafael Perez.  
+# flutter_Bluetooth_application.  
 A new Flutter project that connects the sensor send by an HC-05 module with Arduino right into a display interface in Flutter for a proof of concept.   
 This repo will be used for an app that measures a physiological variable.
 
