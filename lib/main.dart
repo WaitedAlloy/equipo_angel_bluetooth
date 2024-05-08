@@ -14,7 +14,6 @@ void _requestPermission() async {
     await Permission.bluetoothScan.request();
     await Permission.bluetoothConnect.request();
   }
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -32,26 +31,66 @@ class BluetoothScreen extends StatefulWidget {
 class _BluetoothScreenState extends State<BluetoothScreen> {
   BluetoothConnection? connection;
   List<ChartData> dataPoints = []; // Store received data points
+  bool isLoading = false;
+  bool hasError = false;
+  bool showWarning = false;
 
   @override
   void initState() {
     super.initState();
-    _requestPermission();
+    initBluetooth();
   }
 
-
   Future<void> initBluetooth() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    // Request Bluetooth permissions
+    if (!await _requestPermissions()) {
+      setState(() {
+        isLoading = false;
+        hasError = true;
+      });
+      return;
+    }
+
     // Initialize Bluetooth
     await FlutterBluetoothSerial.instance.requestEnable();
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<bool> _requestPermissions() async {
+    // Request Bluetooth permissions
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.bluetooth,
+      Permission.bluetoothConnect,
+    ].request();
+
+    return statuses[Permission.bluetooth] == PermissionStatus.granted &&
+        statuses[Permission.bluetoothConnect] == PermissionStatus.granted;
   }
 
   // Discover and connect to HC-05
   Future<void> _discoverDevices() async {
+    setState(() {
+      isLoading = true;
+      hasError = false;
+    });
+
     List<BluetoothDevice> devices = [];
     try {
       devices = await FlutterBluetoothSerial.instance.getBondedDevices();
     } catch (e) {
       print('Error: $e');
+      setState(() {
+        isLoading = false;
+        hasError = true;
+      });
+      return;
     }
 
     // Choose HC-05 device or use the first device found
@@ -63,11 +102,18 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       print('Connected to ${hc05.name}');
 
       // Start reading data
-      connection?.input?.listen((Uint8List data) {
+      connection!.input?.listen((Uint8List data) {
         String stringData = utf8.decode(data); // Convert bytes to string
         double numericData = double.tryParse(stringData) ?? 0.0; // Parse data to double
         setState(() {
           dataPoints.add(ChartData(dataPoints.length + 1, numericData)); // Add data point to list
+
+          // Check if received value exceeds threshold (e.g., 140)
+          if (numericData > 140) {
+            showWarning = true; // Display warning
+          } else {
+            showWarning = false; // Hide warning
+          }
         });
       }).onDone(() {
         print('Disconnected');
@@ -77,6 +123,13 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       });
     } catch (e) {
       print('Failed to connect: $e');
+      setState(() {
+        hasError = true;
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -86,43 +139,66 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       appBar: AppBar(
         title: Text('Bluetooth Example'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                _discoverDevices(); // Start device discovery and connection
-              },
-              child: Text('Connect to HC-05'),
-            ),
-            if (connection != null)
-              ElevatedButton(
-                onPressed: () {
-                  connection!.finish(); // Disconnect from the device
-                },
-                child: Text('Disconnect'),
-              ),
-            SizedBox(height: 20),
-            // Display line chart
-            if (dataPoints.isNotEmpty)
-              Container(
-                height: 300,
-                padding: EdgeInsets.all(16),
-                child: SfCartesianChart(
-                  primaryXAxis: NumericAxis(),
-                  series: <LineSeries<ChartData, double>>[
-                    LineSeries<ChartData, double>(
-                      dataSource: dataPoints,
-                      xValueMapper: (ChartData sales, _) => sales.x,
-                      yValueMapper: (ChartData sales, _) => sales.y,
-                    ),
-                  ],
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : hasError
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Failed to initialize Bluetooth.'),
+                      ElevatedButton(
+                        onPressed: () {
+                          initBluetooth(); // Retry initialization
+                        },
+                        child: Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          _discoverDevices(); // Start device discovery and connection
+                        },
+                        child: Text('Connect to HC-05'),
+                      ),
+                      if (connection != null)
+                        ElevatedButton(
+                          onPressed: () {
+                            connection!.finish(); // Disconnect from the device
+                          },
+                          child: Text('Disconnect'),
+                        ),
+                      SizedBox(height: 20),
+                      // Display warning message if value exceeds 140
+                      if (showWarning)
+                        Text(
+                          'Warning: Value exceeds 140!',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      // Display line chart
+                      if (dataPoints.isNotEmpty)
+                        Container(
+                          height: 300,
+                          padding: EdgeInsets.all(16),
+                          child: SfCartesianChart(
+                            primaryXAxis: NumericAxis(),
+                            series: <LineSeries<ChartData, double>>[
+                              LineSeries<ChartData, double>(
+                                dataSource: dataPoints,
+                                xValueMapper: (ChartData sales, _) => sales.x,
+                                yValueMapper: (ChartData sales, _) => sales.y,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }
