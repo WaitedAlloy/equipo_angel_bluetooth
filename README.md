@@ -5,4 +5,7 @@ The app measures a simulated ECG physiological variable from an arduino setup, d
 - Ángel David Hernández Almeida | A01634551  
 - Carlo Eduardo Renteria Toussaint | A01639736  
 - Erick Pacheco Ojeda | A01639810  
-- Saulo Moreno Gamboa | A01640287  
+- Saulo Moreno Gamboa | A01640287
+
+## Documentation
+This link contains the mockup for the full ap, this repository just simulates parts of the bluetooth and dashboard pages.  
