@@ -9,11 +9,11 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 void main() => runApp(MyApp());
 
 void _requestPermission() async {
-    await Permission.location.request();
-    await Permission.bluetooth.request();
-    await Permission.bluetoothScan.request();
-    await Permission.bluetoothConnect.request();
-  }
+  await Permission.location.request();
+  await Permission.bluetooth.request();
+  await Permission.bluetoothScan.request();
+  await Permission.bluetoothConnect.request();
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -39,7 +39,6 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     _requestPermission();
   }
 
-
   Future<void> initBluetooth() async {
     // Initialize Bluetooth
     await FlutterBluetoothSerial.instance.requestEnable();
@@ -55,7 +54,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     }
 
     // Choose HC-05 device or use the first device found
-    BluetoothDevice hc05 = devices.firstWhere((device) => device.name == 'HC-05');
+    BluetoothDevice hc05 =
+        devices.firstWhere((device) => device.name == 'HC-05');
 
     // Connect to the chosen device
     try {
@@ -65,12 +65,14 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       // Start reading data
       connection?.input?.listen((Uint8List data) {
         String stringData = utf8.decode(data); // Convert bytes to string
-        double numericData = double.tryParse(stringData) ?? 0.0; // Parse data to double
+        double numericData =
+            double.tryParse(stringData) ?? 0.0; // Parse data to double
         setState(() {
-          dataPoints.add(ChartData(dataPoints.length + 1, numericData)); // Add data point to list
+          dataPoints.add(ChartData(
+              dataPoints.length + 1, numericData)); // Add data point to list
         });
       }).onDone(() {
-        print('Disconnected');
+        print('Desconectado');
         setState(() {
           connection = null;
         });
@@ -84,7 +86,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bluetooth Example'),
+        title: Text('Ejemplo de Bluetooth'),
       ),
       body: Center(
         child: Column(
@@ -101,7 +103,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                 onPressed: () {
                   connection!.finish(); // Disconnect from the device
                 },
-                child: Text('Disconnect'),
+                child: Text('Desconectado'),
               ),
             SizedBox(height: 20),
             // Display line chart
