@@ -137,7 +137,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bluetooth Example'),
+        title: Text('ECG signal display'),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
