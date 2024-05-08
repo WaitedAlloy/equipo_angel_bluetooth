@@ -10,3 +10,6 @@ The app measures a simulated ECG physiological variable from an arduino setup, d
 ## Documentation
 https://docs.google.com/document/d/1ATF0kJDTA_ynrqWHY1P3ioUOF-cM3mDPNUCl839N75I/edit?usp=sharing  
 This link contains the mockup for the full app, this repository just simulates parts of the bluetooth and dashboard pages.  
+
+https://youtube.com/shorts/oLrJioIniBc?feature=share  
+This link contains the video showing the app functioning with the hardware to simulate the physiological variable from an arduino setup.  
