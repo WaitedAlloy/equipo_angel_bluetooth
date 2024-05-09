@@ -116,13 +116,13 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
           }
         });
       }).onDone(() {
-        print('Disconnected');
+        print('Descnectado');
         setState(() {
           connection = null;
         });
       });
     } catch (e) {
-      print('Failed to connect: $e');
+      print('Fallo la conexion: $e');
       setState(() {
         hasError = true;
       });
